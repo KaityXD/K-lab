@@ -4,6 +4,11 @@
 #include <glm/glm.hpp>
 #include <functional>
 
+// Define LUA_OK for Lua 5.1 compatibility
+#ifndef LUA_OK
+#define LUA_OK 0
+#endif
+
 namespace klab {
 
 class Scenario;
