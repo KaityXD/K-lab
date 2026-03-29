@@ -2,8 +2,8 @@
 
 K-Lab is a lightweight, scriptable 3D aim trainer built for maximum FPS and minimal input latency. It features a robust C++/OpenGL core and a flexible LuaJIT-powered scenario system, allowing users to create, share, and play custom training modes.
 
-![GitHub License](https://img.shields.io/github/license/user/kim-lol)
-![GitHub Stars](https://img.shields.io/github/stars/user/kim-lol)
+![GitHub License](https://img.shields.io/github/license/KaityXD/k-lab)
+![GitHub Stars](https://img.shields.io/github/stars/KaityXD/K-Lab)
 
 ## ✨ Features
 
