@@ -1,0 +1,213 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libgl1-mesa-dev \
+          libglfw3-dev \
+          libglew-dev \
+          liblua5.1-dev \
+          luajit \
+          liblua5.1-dev \
+          libsqlite3-dev \
+          libglm-dev \
+          pkg-config
+    
+    - name: Build project
+      run: |
+        chmod +x build.sh
+        ./build.sh
+    
+    - name: Create release package
+      run: |
+        mkdir -p release_package
+        cp build/klab release_package/
+        cp -r assets release_package/
+        cp -r shaders release_package/
+        cp -r scenarios release_package/
+        cp config.cfg release_package/ 2>/dev/null || true
+        cp crosshairs.cfg release_package/ 2>/dev/null || true
+        cp LICENSE release_package/
+        cp README.md release_package/
+        cd release_package
+        zip -r ../klab-linux.zip .
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: klab-linux
+        path: klab-linux.zip
+
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-glfw
+          mingw-w64-x86_64-glew
+          mingw-w64-x86_64-luajit
+          mingw-w64-x86_64-sqlite3
+          mingw-w64-x86_64-glm
+          mingw-w64-x86_64-pkg-config
+          make
+    
+    - name: Build project
+      shell: msys2 {0}
+      run: |
+        mkdir build
+        cd build
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        mingw32-make -j$(nproc)
+    
+    - name: Create release package
+      shell: msys2 {0}
+      run: |
+        mkdir -p release_package
+        cp build/klab.exe release_package/
+        cp -r assets release_package/
+        cp -r shaders release_package/
+        cp -r scenarios release_package/
+        cp config.cfg release_package/ 2>/dev/null || true
+        cp crosshairs.cfg release_package/ 2>/dev/null || true
+        cp LICENSE release_package/
+        cp README.md release_package/
+        cd release_package
+        zip -r ../klab-windows.zip .
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: klab-windows
+        path: klab-windows.zip
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install cmake glfw glew luajit sqlite glm pkg-config
+    
+    - name: Build project
+      run: |
+        chmod +x build_macos.sh
+        ./build_macos.sh
+    
+    - name: Create release package
+      run: |
+        mkdir -p release_package
+        cp build/klab release_package/
+        cp -r assets release_package/
+        cp -r shaders release_package/
+        cp -r scenarios release_package/
+        cp config.cfg release_package/ 2>/dev/null || true
+        cp crosshairs.cfg release_package/ 2>/dev/null || true
+        cp LICENSE release_package/
+        cp README.md release_package/
+        cd release_package
+        zip -r ../klab-macos.zip .
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: klab-macos
+        path: klab-macos.zip
+
+  release:
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        body: |
+          Automated release for ${{ github.ref }}
+          
+          ## Downloads
+          - **Linux**: klab-linux.zip
+          - **Windows**: klab-windows.zip  
+          - **macOS**: klab-macos.zip
+          
+          ## Installation
+          1. Download the appropriate zip file for your platform
+          2. Extract the contents
+          3. Run the executable (`klab` on Linux/macOS, `klab.exe` on Windows)
+    
+    - name: Upload Linux Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/klab-linux/klab-linux.zip
+        asset_name: klab-linux.zip
+        asset_content_type: application/zip
+    
+    - name: Upload Windows Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/klab-windows/klab-windows.zip
+        asset_name: klab-windows.zip
+        asset_content_type: application/zip
+    
+    - name: Upload macOS Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/klab-macos/klab-macos.zip
+        asset_name: klab-macos.zip
+        asset_content_type: application/zip
