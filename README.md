@@ -78,3 +78,6 @@ Contributions are welcome! Feel free to open an issue or submit a pull request f
 
 ## 📄 License
 This project is licensed under a custom Non-Commercial License - see the [LICENSE](LICENSE) file for details. Selling this software is strictly prohibited.
+
+## Contact 
+Discord: https://discord.gg/TjYkagpRfQ
