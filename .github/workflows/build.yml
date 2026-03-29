@@ -93,6 +93,7 @@ jobs:
     - name: Create release package
       shell: msys2 {0}
       run: |
+        rm -rf release_package
         mkdir -p release_package
         cp build/klab.exe release_package/
         cp -r assets release_package/
