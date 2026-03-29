@@ -80,6 +80,7 @@ jobs:
           mingw-w64-x86_64-glm
           mingw-w64-x86_64-pkg-config
           make
+          zip
     
     - name: Build project
       shell: msys2 {0}
@@ -102,7 +103,7 @@ jobs:
         cp LICENSE release_package/
         cp README.md release_package/
         cd release_package
-        7z a ../klab-windows.zip *
+        zip -r ../klab-windows.zip .
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -121,16 +122,19 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install cmake glfw glew luajit sqlite glm pkg-config
+        brew install cmake glfw glew luajit sqlite glm pkg-config zip
+    
+    - name: Find GLFW path
+      run: |
+        echo "GLFW installed at:"
+        brew list glfw || true
+        echo "PKG_CONFIG_PATH:"
+        pkg-config --cflags --libs glfw || true
     
     - name: Build project
       run: |
         chmod +x build_macos.sh
         ./build_macos.sh
-      env:
-        LDFLAGS: "-L/usr/local/opt/glfw/lib"
-        CPPFLAGS: "-I/usr/local/opt/glfw/include"
-        PKG_CONFIG_PATH: "/usr/local/opt/glfw/lib/pkgconfig"
     
     - name: Create release package
       run: |
