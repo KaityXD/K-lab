@@ -64,6 +64,29 @@ if(NOT SQLite3_FOUND AND NOT SQLITE3_FOUND)
     message(FATAL_ERROR "SQLite3 not found!")
 endif()
 
+# Fix LuaJIT include path for Ubuntu/Debian
+if(NOT LUAJIT_FOUND)
+    find_path(LUAJIT_INCLUDE_DIR lua.hpp PATH_SUFFIXES luajit-2.1 luajit-2.0)
+    find_library(LUAJIT_LIBRARIES NAMES luajit-5.1 luajit libluajit-5.1.so.2)
+    if(LUAJIT_INCLUDE_DIR AND LUAJIT_LIBRARIES)
+        set(LUAJIT_FOUND TRUE)
+        set(LUAJIT_INCLUDE_DIRS ${LUAJIT_INCLUDE_DIR})
+    endif()
+endif()
+
+# Force LuaJIT include directory for Ubuntu
+if(NOT LUAJIT_FOUND)
+    if(EXISTS "/usr/include/luajit-2.1")
+        set(LUAJIT_INCLUDE_DIRS "/usr/include/luajit-2.1")
+        set(LUAJIT_LIBRARIES "luajit-5.1")
+        set(LUAJIT_FOUND TRUE)
+    elseif(EXISTS "/usr/include/lua5.1")
+        set(LUAJIT_INCLUDE_DIRS "/usr/include/lua5.1")
+        set(LUAJIT_LIBRARIES "lua5.1")
+        set(LUAJIT_FOUND TRUE)
+    endif()
+endif()
+
 # Include directories
 find_package(glm QUIET)
 if (NOT GLM_FOUND)
