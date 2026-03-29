@@ -36,7 +36,7 @@ jobs:
     - name: Build project
       run: |
         chmod +x build.sh
-        ./build.sh
+        ./build.sh --clean --jobs 16
     
     - name: Create release package
       run: |
