@@ -84,10 +84,10 @@ jobs:
     - name: Build project
       shell: msys2 {0}
       run: |
-        mkdir build
+        mkdir -p build
         cd build
-        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-        mingw32-make -j$(nproc)
+        cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
     
     - name: Create release package
       shell: msys2 {0}
