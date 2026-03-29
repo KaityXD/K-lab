@@ -102,7 +102,7 @@ jobs:
         cp LICENSE release_package/
         cp README.md release_package/
         cd release_package
-        zip -r ../klab-windows.zip .
+        7z a ../klab-windows.zip *
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -127,6 +127,10 @@ jobs:
       run: |
         chmod +x build_macos.sh
         ./build_macos.sh
+      env:
+        LDFLAGS: "-L/usr/local/opt/glfw/lib"
+        CPPFLAGS: "-I/usr/local/opt/glfw/include"
+        PKG_CONFIG_PATH: "/usr/local/opt/glfw/lib/pkgconfig"
     
     - name: Create release package
       run: |
