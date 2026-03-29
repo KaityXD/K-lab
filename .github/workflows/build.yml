@@ -111,30 +111,30 @@ jobs:
         name: klab-windows
         path: klab-windows.zip
 
-  build-macos:
-    runs-on: macos-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: false
-    
-    - name: Install dependencies
-      run: |
-        brew update
-        brew install cmake glfw glew luajit sqlite glm pkg-config zip
-    
-    - name: Find GLFW path
-      run: |
-        echo "GLFW installed at:"
-        brew list glfw || true
-        echo "PKG_CONFIG_PATH:"
-        pkg-config --cflags --libs glfw || true
-    
-    - name: Build project
-      run: |
-        chmod +x build_macos.sh
-        ./build_macos.sh
+  # build-macos:
+  #   runs-on: macos-latest
+  #   
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       submodules: false
+  #   
+  #   - name: Install dependencies
+  #     run: |
+  #       brew update
+  #       brew install cmake glfw glew luajit sqlite glm pkg-config zip
+  #   
+  #   - name: Find GLFW path
+  #     run: |
+  #       echo "GLFW installed at:"
+  #       brew list glfw || true
+  #       echo "PKG_CONFIG_PATH:"
+  #       pkg-config --cflags --libs glfw || true
+  #   
+  #   - name: Build project
+  #     run: |
+  #       chmod +x build_macos.sh
+  #       ./build_macos.sh
     
     - name: Create release package
       run: |
@@ -157,7 +157,7 @@ jobs:
         path: klab-macos.zip
 
   release:
-    needs: [build-linux, build-windows, build-macos]
+    needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     
@@ -183,12 +183,11 @@ jobs:
           ## Downloads
           - **Linux**: klab-linux.zip
           - **Windows**: klab-windows.zip  
-          - **macOS**: klab-macos.zip
           
           ## Installation
           1. Download the appropriate zip file for your platform
           2. Extract the contents
-          3. Run the executable (`klab` on Linux/macOS, `klab.exe` on Windows)
+          3. Run the executable (`klab` on Linux, `klab.exe` on Windows)
     
     - name: Upload Linux Release Asset
       uses: actions/upload-release-asset@v1
@@ -208,14 +207,4 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./artifacts/klab-windows/klab-windows.zip
         asset_name: klab-windows.zip
-        asset_content_type: application/zip
-    
-    - name: Upload macOS Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/klab-macos/klab-macos.zip
-        asset_name: klab-macos.zip
         asset_content_type: application/zip
