@@ -170,9 +170,27 @@ set(LIBRARIES
 if(WIN32)
     list(APPEND LIBRARIES opengl32 gdi32 user32 shell32)
     if(MINGW)
-        # Force EVERYTHING to be linked statically
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+        # Force static linking for MinGW to reduce DLL dependencies
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
         add_definitions(-DGLEW_STATIC)
+        # Try to find static versions of libraries
+        find_library(GLFW3_STATIC_LIB NAMES glfw3.a libglfw3.a glfw3static libglfw3static)
+        find_library(GLEW_STATIC_LIB NAMES glew32s.a libglew32s.a GLEW_STATIC)
+        find_library(LUAJIT_STATIC_LIB NAMES libluajit-5.1.a luajit-5.1.a)
+        
+        # Use static libs if found
+        if(GLFW3_STATIC_LIB)
+            set(GLFW3_LIBRARIES ${GLFW3_STATIC_LIB})
+            message(STATUS "Using static GLFW3: ${GLFW3_STATIC_LIB}")
+        endif()
+        if(GLEW_STATIC_LIB)
+            set(GLEW_LIBRARIES ${GLEW_STATIC_LIB})
+            message(STATUS "Using static GLEW: ${GLEW_STATIC_LIB}")
+        endif()
+        if(LUAJIT_STATIC_LIB)
+            set(LUAJIT_LIBRARIES ${LUAJIT_STATIC_LIB})
+            message(STATUS "Using static LuaJIT: ${LUAJIT_STATIC_LIB}")
+        endif()
     endif()
 else()
     list(APPEND LIBRARIES pthread m dl)
